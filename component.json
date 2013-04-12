@@ -4,5 +4,8 @@
   "repository": {
     "type": "git",
     "url": "git://github.com/lexich/log4j-simple-amd.git"
+  },
+  "dependencies":{
+    "requirejs":"~2.1.4"
   }
 }
