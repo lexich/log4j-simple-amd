@@ -2,9 +2,11 @@ define [], ->
   "use strict"
   ctx = {}
   ((ctx) ->
-    MessageProcesor = (name, level) ->
-      @name = name
-      @setLevel level
+    MessageProcesor = (@name, @_level, @initialized=->true) ->
+      
+      if @initialized()
+        @setLevel @_level()        
+      this
 
     Log = ->
       if instance is undefined
@@ -25,13 +27,15 @@ define [], ->
         WARN: WARN
         ERROR: ERROR
 
-
+      _initConfig:false
       ###
       @param options
       name -
       level - {value} default LOG.LEVEL.ERROR
       ###
       initConfig: (options) ->
+        @_initConfig = true
+
         for key of options
           @options[key] = @options[key] or {}
           current = @options[key]
@@ -41,20 +45,25 @@ define [], ->
             current.logger.setLevel param.level  if current.logger
 
       getLogger: (name) ->
-        @options[name] = @options[name] or {}
-        option = @options[name]
-        def = @LEVEL.ERROR | @LEVEL.WARN
-        level = (if option then option.level or def else def)
-        logger = new MessageProcesor(name, level)
+        getLevel = =>
+          @options[name] = @options[name] or {}
+          option = @options[name]
+          def = @LEVEL.ERROR | @LEVEL.WARN
+          level = (if option then option.level or def else def)
+        logger = new MessageProcesor(name, getLevel, => @_initConfig)
         logger:: = {}
         logger.constructor = ->
 
-        option.logger = logger
+        #option.logger = logger
         logger
 
     MessageProcesor:: =
       constructor: MessageProcesor
-      msg: (msg, level) ->
+      _firstMsg:false
+      msg: (msg, level) ->        
+        if @_firstMsg is false and @initialized()
+          @setLevel @_level() 
+        @_firstMsg = true
         is_ = @level & level
         @execute msg, level, @name  unless is_ is 0
 
@@ -68,7 +77,7 @@ define [], ->
           console.error "ERROR: " + msg
         else console.debug "DEBUG: " + msg  if level is Log::LEVEL.DEBUG
 
-      setLevel: (level) ->
+      setLevel: (level) -> 
         @level = level
 
       info: (msg) ->
