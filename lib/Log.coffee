@@ -2,7 +2,17 @@ define [], ->
   "use strict"
   ctx = {}
   ((ctx) ->
-    MessageProcesor = (@name, @_level, @initialized=->true) ->
+    execute: (message, level, name) ->
+      msg = "(" + name + ") - " + message
+      if level is Log::LEVEL.INFO
+        console.info "INFO: " + msg
+      else if level is Log::LEVEL.WARN
+        console.warn "WARN: " + msg
+      else if level is Log::LEVEL.ERROR
+        console.error "ERROR: " + msg
+      else console.debug "DEBUG: " + msg  if level is Log::LEVEL.DEBUG
+
+    MessageProcesor = (@name, @_level, @initialized=(->true), @_execute=(->execute)) ->
       
       if @initialized()
         @setLevel @_level()        
@@ -33,7 +43,7 @@ define [], ->
       name -
       level - {value} default LOG.LEVEL.ERROR
       ###
-      initConfig: (options) ->
+      initConfig: (options,@execute=execute) ->
         @_initConfig = true
 
         for key of options
@@ -50,7 +60,7 @@ define [], ->
           option = @options[name]
           def = @LEVEL.ERROR | @LEVEL.WARN
           level = (if option then option.level or def else def)
-        logger = new MessageProcesor(name, getLevel, => @_initConfig)
+        logger = new MessageProcesor(name, getLevel, (=> @_initConfig), (=> @execute))
         logger:: = {}
         logger.constructor = ->
 
@@ -65,20 +75,11 @@ define [], ->
           @setLevel @_level() 
         @_firstMsg = true
         is_ = @level & level
-        @execute msg, level, @name  unless is_ is 0
-
-      execute: (message, level, name) ->
-        msg = "(" + name + ") - " + message
-        if level is Log::LEVEL.INFO
-          console.info "INFO: " + msg
-        else if level is Log::LEVEL.WARN
-          console.warn "WARN: " + msg
-        else if level is Log::LEVEL.ERROR
-          console.error "ERROR: " + msg
-        else console.debug "DEBUG: " + msg  if level is Log::LEVEL.DEBUG
+        @execute msg, level, @name  unless is_ is 0      
 
       setLevel: (level) -> 
         @level = level
+        @execute = @_execute()
 
       info: (msg) ->
         @msg msg, Log::LEVEL.INFO
