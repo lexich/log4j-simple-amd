@@ -2,15 +2,23 @@ define [], ->
   "use strict"
   ctx = {}
   ((ctx) ->
+
     execute= (message, level, name) ->
       msg = "(" + name + ") - " + message
       if level is Log::LEVEL.INFO
-        console.info "INFO: " + msg
+        if console.debug? 
+          console.info "INFO: " + msg
+        else 
+          console.log "INFO: " + msg
       else if level is Log::LEVEL.WARN
         console.warn "WARN: " + msg
       else if level is Log::LEVEL.ERROR
         console.error "ERROR: " + msg
-      else console.debug "DEBUG: " + msg  if level is Log::LEVEL.DEBUG        
+      else if level is Log::LEVEL.DEBUG
+        if console.debug? 
+          console.debug "DEBUG: " + msg  
+        else 
+          console.info "DEBUG: " + msg  
     
     instance = undefined    
 
