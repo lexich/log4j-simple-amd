@@ -1,6 +1,6 @@
 {
   "name": "log4j-simple-amd",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "repository": {
     "type": "git",
     "url": "git://github.com/lexich/log4j-simple-amd.git"
